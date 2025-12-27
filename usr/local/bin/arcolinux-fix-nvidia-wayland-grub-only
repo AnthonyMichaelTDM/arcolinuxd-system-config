@@ -53,12 +53,12 @@ fi
 
 echo
 echo "################################################################"
-echo "################### Making sure nvidia-dkms is installed or else do nothing"
+echo "################### Making sure nvidia-open-dkms is installed or else do nothing"
 echo "################################################################"
 echo
 
-# Just checking if nvidia-dkms is installed else stop
-if pacman -Qi nvidia-dkms &> /dev/null; then
+# Just checking if nvidia-open-dkms is installed else stop
+if pacman -Qi nvidia-open-dkms &> /dev/null; then
 
 	if pacman -Qi grub &> /dev/null; then
 
