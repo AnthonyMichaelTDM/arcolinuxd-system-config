@@ -2,87 +2,159 @@
 # If you come from bash you might have to change your $PATH.
 # export PATH=$HOME/bin:/usr/local/bin:$PATH
 
-# Path to your oh-my-zsh installation.
-#installation via script from github
-#export ZSH="/home/$USER/.oh-my-zsh"
-#installation via paru -S oh-my-zsh-git
-export ZSH=/usr/share/oh-my-zsh/
+# If not running interactively, don't do anything
+[[ $- != *i* ]] && return
 
-# Set name of the theme to load --- if set to "random", it will
-# load a random theme each time oh-my-zsh is loaded, in which case,
-# to know which specific one was loaded, run: echo $RANDOM_THEME
-# See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
-# if you installed the package oh-my-zsh-powerline-theme-git then you type here "powerline" as zsh theme
-ZSH_THEME="random"
+####   OTHER ZSH CONFIGURATION   ####
 
-# Set list of themes to pick from when loading at random
-# Setting this variable when ZSH_THEME=random will cause zsh to load
-# a theme from this variable instead of looking in ~/.oh-my-zsh/themes/
-# If set to an empty array, this variable will have no effect.
+## command history
+HISTFILE=~/.zsh_history
+HISTSIZE=50000
+SAVEHIST=10000
+setopt GLOB_DOTS
+HISTDUP=erase
+#share commands between terminal instances or not
+# unsetopt SHARE_HISTORY
+setopt SHARE_HISTORY
+setopt APPEND_HISTORY
+setopt HIST_IGNORE_SPACE
+setopt HIST_IGNORE_ALL_DUPS
+setopt HIST_SAVE_NO_DUPS
+setopt HIST_IGNORE_DUPS
+setopt HIST_FIND_NO_DUPS
+setopt EXTENDED_HISTORY
+setopt HIST_VERIFY
+setopt HIST_EXPIRE_DUPS_FIRST
 
-# ZSH_THEME_RANDOM_CANDIDATES=( "robbyrussell" "agnoster" )
+## completions
+setopt COMPLETE_IN_WORD
+setopt ALWAYS_TO_END
 
-# ZSH_THEME_RANDOM_IGNORED=(pygmalion tjkirch_mod)
+## IO
+setopt NO_FLOW_CONTROL
+setopt INTERACTIVE_COMMENTS
 
-# Uncomment the following line to use case-sensitive completion.
-# CASE_SENSITIVE="true"
+## auto-cd and pushd options
+setopt auto_cd
+setopt auto_pushd
+setopt pushd_ignore_dups
+setopt pushdminus
 
-# Uncomment the following line to use hyphen-insensitive completion.
-# Case-sensitive completion must be off. _ and - will be interchangeable.
-# HYPHEN_INSENSITIVE="true"
+## job control
+setopt LONG_LIST_JOBS
 
-# Uncomment the following line to disable bi-weekly auto-update checks.
-# DISABLE_AUTO_UPDATE="true"
+# export HISTCONTROL=ignoreboth:erasedups
 
-# Uncomment the following line to automatically update without prompting.
-# DISABLE_UPDATE_PROMPT="true"
+####   Additional Keybinds ####
 
-# Uncomment the following line to change how often to auto-update (in days).
-# export UPDATE_ZSH_DAYS=13
+# these are some of the more useful keybinds we used to get with oh-my-zsh
 
-# Uncomment the following line if pasting URLs and other text is messed up.
-# DISABLE_MAGIC_FUNCTIONS=true
+# Make sure that the terminal is in application mode when zle is active,
+# since only then are values from $terminfo valid
+if (( ${+terminfo[smkx]} )) && (( ${+terminfo[rmkx]} )); then
 
-# Uncomment the following line to disable colors in ls.
-# DISABLE_LS_COLORS="true"
+  function zle-line-init() {
+    echoti smkx
+  }
+  function zle-line-finish() {
+    echoti rmkx
+  }
 
-# Uncomment the following line to disable auto-setting terminal title.
-# DISABLE_AUTO_TITLE="true"
-
-# Uncomment the following line to enable command auto-correction.
-# ENABLE_CORRECTION="true"
-
-# Uncomment the following line to display red dots whilst waiting for completion.
-# COMPLETION_WAITING_DOTS="true"
-
-# Uncomment the following line if you want to disable marking untracked files
-# under VCS as dirty. This makes repository status check for large repositories
-# much, much faster.
-# DISABLE_UNTRACKED_FILES_DIRTY="true"
-
-# Uncomment the following line if you want to change the command execution time
-# stamp shown in the history command output.
-# You can set one of the optional three formats:
-# "mm/dd/yyyy"|"dd.mm.yyyy"|"yyyy-mm-dd"
-# or set a custom format using the strftime function format specifications,
-# see 'man strftime' for details.
-# HIST_STAMPS="mm/dd/yyyy"
-
-# Would you like to use another custom folder than $ZSH/custom?
-# ZSH_CUSTOM=/path/to/new-custom-folder
-
-# Which plugins would you like to load?
-# Standard plugins can be found in ~/.oh-my-zsh/plugins/*
-# Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
-# Example format: plugins=(rails git textmate ruby lighthouse)
-# Add wisely, as too many plugins slow down shell startup.
-plugins=(git)
-
-if [ -f $ZSH/oh-my-zsh.sh ]; then
-  source $ZSH/oh-my-zsh.sh
+  zle -N zle-line-init
+  zle -N zle-line-finish
 fi
 
-# User configuration
+## Emacs keybindings
+bindkey -e
+
+## PageUp/PageDown go up/down a line of history
+if [[ -n "${terminfo[kpp]}" ]]; then
+  bindkey "${terminfo[kpp]}" up-line-or-history
+fi
+if [[ -n "${terminfo[knp]}" ]]; then
+  bindkey "${terminfo[knp]}" down-line-or-history
+fi
+
+## override up/down keys
+autoload -U up-line-or-beginning-search
+zle -N up-line-or-beginning-search
+bindkey "^[[A" up-line-or-beginning-search
+if [[ -n "${terminfo[kcuu1]}" ]]; then
+  bindkey "${terminfo[kcuu1]}" up-line-or-beginning-search
+fi
+
+autoload -U down-line-or-beginning-search
+zle -N down-line-or-beginning-search
+bindkey "^[[B" down-line-or-beginning-search
+if [[ -n "${terminfo[kcud1]}" ]]; then
+  bindkey "${terminfo[kcud1]}" down-line-or-beginning-search
+fi
+
+## home and end keys
+if [[ -n "${terminfo[khome]}" ]]; then
+  bindkey "${terminfo[khome]}" beginning-of-line
+fi
+if [[ -n "${terminfo[kend]}" ]]; then
+  bindkey "${terminfo[kend]}" end-of-line
+fi
+
+## [Shift-Tab] - move through the completion menu backwards
+if [[ -n "${terminfo[kcbt]}" ]]; then
+  bindkey "${terminfo[kcbt]}" reverse-menu-complete
+fi
+
+## make the backspace/delete keys work correctly
+bindkey '^?' backward-delete-char
+bindkey '^[[3~' delete-char
+### ctrl+delete delete whole word
+bindkey '^[[3;5~' kill-word
+### ctrl+backspace also deletes whole word
+bindkey '^H' backward-kill-word
+
+## ctrl + left/right arrow keys
+bindkey '^[[1;5C' forward-word
+bindkey '^[[1;5D' backward-word
+
+## Ctrl+x, Ctrl+e: open current cmdline in a text editor
+### $VISUAL (or $EDITOR / 'vi' if not set)
+autoload -U edit-command-line
+zle -N edit-command-line
+bindkey '\C-x\C-e' edit-command-line
+
+## Esc+Key macros
+bindkey '\ew' kill-region # [Esc-w] - kill from the cursor to the mark (everything up to the cursor)
+bindkey -s '\el' '^q ls\n'   # [Esc-l] - run command: ls
+## file rename magic ([Esc-m] copy the previous word in the cmdline to the cursor position)
+bindkey '^[m' copy-prev-shell-word
+
+## [Space] Don't do history expansion
+bindkey ' ' magic-space
+
+####   PLUGIN SETTINGS   ####
+
+## configure completions
+autoload -Uz compinit && compinit
+zstyle ':completion:*' matcher-list '' 'm:{a-zA-Z}={A-Za-z}' 'r:|=*' 'l:|=* r:|=*'
+# Color file completions
+zstyle ':completion:*' list-colors ''
+# # Group completions by type
+# zstyle ':completion:*' group-name ''
+# zstyle ':completion:*' format '%B%d%b'
+
+# Set up fzf key bindings and fuzzy completion
+if [ -x "$(command -v fzf)" ]; then
+  source <(fzf --zsh)
+fi
+
+# enable the syntax highligher plugin
+if [ -f /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]; then
+  source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+fi
+
+# Load the starship prompt
+eval "$(starship init zsh)"
+
+####   USER CONFIGURATION   ####
 
 # export MANPATH="/usr/local/man:$MANPATH"
 
@@ -99,28 +171,16 @@ fi
 # Compilation flags
 # export ARCHFLAGS="-arch x86_64"
 
-
-####   ARCOLINUX SETTINGS   ####
-export PAGER='most'
-
-if [ -f /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]; then
-  source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+if [ -x "$(command -v nvim)" ]; then
+  export PAGER='nvim +Man!'
+else
+  export PAGER='most'
 fi
 
-setopt GLOB_DOTS
-#share commands between terminal instances or not
-unsetopt SHARE_HISTORY
-#setopt SHARE_HISTORY
+# Make helix the default editor
 
-# If not running interactively, don't do anything
-[[ $- != *i* ]] && return
-
-export HISTCONTROL=ignoreboth:erasedups
-
-# Make nano the default editor
-
-export EDITOR='nano'
-export VISUAL='nano'
+export EDITOR='helix'
+export VISUAL='helix'
 
 #PS1='[\u@\h \W]\$ '
 
@@ -132,11 +192,15 @@ if [ -d "$HOME/.local/bin" ] ;
   then PATH="$HOME/.local/bin:$PATH"
 fi
 
+####   EDU SETTINGS ####
+(cat $HOME/.cache/wal/sequences &)
+
 ### ALIASES ###
 
 #list
 alias ls='ls --color=auto'
 alias la='ls -a'
+alias lsa='ls -a'
 alias ll='ls -alFh'
 alias l='ls'
 alias l.="ls -A | egrep '^\.'"
@@ -152,9 +216,9 @@ alias spsii='sudo pacman -Sii'
 
 # show the list of packages that need this package - depends mpv as example
 function_depends()  {
-    search=$(echo "$1")
-    sudo pacman -Sii $search | grep "Required" | sed -e "s/Required By     : //g" | sed -e "s/  /\n/g"
-    }
+  search=$(echo "$1")
+  sudo pacman -Sii $search | grep "Required" | sed -e "s/Required By     : //g" | sed -e "s/  /\n/g"
+}
 
 alias depends='function_depends'
 
@@ -307,20 +371,14 @@ alias start-vmware="sudo systemctl enable --now vmtoolsd.service"
 alias vmware-start="sudo systemctl enable --now vmtoolsd.service"
 alias sv="sudo systemctl enable --now vmtoolsd.service"
 
-#shopt
-#shopt -s autocd # change to named directory
-#shopt -s cdspell # autocorrects cd misspellings
-#shopt -s cmdhist # save multi-line commands in history as single line
-#shopt -s dotglob
-#shopt -s histappend # do not overwrite history
-#shopt -s expand_aliases # expand aliases
-
 #youtube download
 alias yta-aac="yt-dlp --extract-audio --audio-format aac "
 alias yta-best="yt-dlp --extract-audio --audio-format best "
 alias yta-flac="yt-dlp --extract-audio --audio-format flac "
 alias yta-mp3="yt-dlp --extract-audio --audio-format mp3 "
 alias ytv-best="yt-dlp -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio' --merge-output-format mp4 "
+alias yta-mp3-playlist="yt-dlp --extract-audio --audio-format mp3 --embed-thumbnail --embed-metadata --concurrent-fragments 4 -o '%(title)s.%(ext)s' "
+alias yta-best-playlist="yt-dlp --extract-audio --audio-format best --audio-quality 0 --embed-thumbnail --embed-metadata --concurrent-fragments 4 -o '%(title)s.%(ext)s' "
 
 #Recent Installed Packages
 alias rip="expac --timefmt='%Y-%m-%d %T' '%l\t%n %v' | sort | tail -200 | nl"
